@@ -1,0 +1,177 @@
+
+### 2020 Raw Data Cleaning ###
+### 1/12/2023 ###
+
+### Step 1: Install Packages ###
+
+install.packages("tidyverse")
+install.packages("readxl")
+install.packages("janitor")
+
+library(tidyverse)
+library(readxl)
+library(janitor)
+
+### Step 2: Import Data ###
+## The readxl package allows you to pull data straight from an excel file instead of having to make a CSV file first ##
+
+```{r}
+Spring_2020_raw <- read_excel("Spring 2020 - Percent Cover - Raw Data DNET.xlsx")
+## multiple sheets are in this file so we need to specify which sheet we want to work with
+
+Spring_2020_raw <- read_excel("Spring 2020 - Percent Cover - Raw Data DNET.xlsx", sheet = "Sheet1")
+## there are a lot of error messages due to the sheet not being cleaned up properly ##
+
+Spring_2020_raw <- read_excel("Spring 2020 - Percent Cover - Raw Data DNET.xlsx", sheet = "Sheet1", skip = 1)
+## the skip line allows you to get rid of a column of the dataset. We want to keep the date so we need to get rid of the skip line ##
+
+# Instead lets perhaps skip naming columns and just have everything come in as characters. 
+
+Spring_2020_raw <- read_excel("Spring 2020 - Percent Cover - Raw Data DNET.xlsx", sheet = "Sheet1", col_names = FALSE)
+```
+
+### There is more than one year's worth of data however. We need to import all three and check if they're in the same format.###
+
+```{r}
+Spring_2020_headers <- 
+  read_excel("Spring 2021 - Percent Cover - Raw Data DNET.xlsx", sheet = "Sheet1", col_names = TRUE)
+
+Spring_2021_headers <- 
+  read_excel("Spring 2021 - Percent Cover - Raw Data DNET.xlsx", sheet = "Sheet1", col_names = TRUE)
+
+Spring_2022_headers <- 
+  read_excel("Spring 2022 - Percent Cover - Raw Data DNET.xlsx", sheet = "Sheet1", col_names = TRUE)
+
+names(Spring_2020_headers)
+names(Spring_2021_headers)
+names(Spring_2022_headers)
+```
+
+Formatting one data frame - let's check out the checklist!
+
+Which row has the best column names to keep?
+Use colnames(data) <- data[rownumber, ] to name your columns after that row.
+
+```{r}
+
+# the function row_to_names() is from the janitor package
+Spring_2020_raw <- Spring_2020_raw %>% row_to_names(row_number(1))
+
+Spring_2020_raw
+```
+
+Are those column names okay, or do they need to be changed to be tidy, contain identifying information? 
+Use rename() to give your columns better names. 
+## rename(Name you want it to be = 'current column name') ##
+```{r}
+Spring_2020_raw <- Spring_2020_raw %>% rename(Transect = `Transect #`, Hits = `# Hits`)
+```
+
+### Cleaning Up Data ###
+## I am starting with cleaning the block and plot columns ##
+## I need to change the values from 1.0 to 1 ##
+
+## Remove informational Row
+```{r}
+
+```
+
+# to make it a factor: 
+```{r}
+glimpse(Spring_2020_raw) # Block is a character, we want it as a factor
+Spring_2020_raw<-Spring_2020_raw %>% mutate(Block = as.factor(Block))
+Spring_2020_raw<-Spring_2020_raw %>% mutate(Plot = as.factor (Plot))
+Spring_2020_raw<-Spring_2020_raw %>% mutate(Treatment = as.factor(Treatment))
+Spring_2020_raw<-Spring_2020_raw %>% mutate(Region = as.factor(Region))
+Spring_2020_raw<-Spring_2020_raw %>% mutate(Transect = as.factor(Transect))
+```
+
+# to make it numeric
+```{r}
+Spring_2020_raw<-Spring_2020_raw %>% mutate(Distance = as.numeric(Distance))
+```
+
+```{r}
+view(Spring_2020_raw)
+```
+
+# How to turn columns into whole numbers
+
+```{r}
+Spring_2020_raw <- Spring_2020_raw %>%
+  mutate(Hits=as.numeric(Hits))
+
+glimpse(Spring_2020_raw)
+```
+
+## Changing the date ##
+```{r}
+Spring_2020_raw <- Spring_2020_raw %>% 
+  mutate(Date=as.numeric(Date)) %>% mutate(Date = as.Date(Date,origin = "1899-12-30"))
+```
+
+### How to check for Typos ###
+```{r}
+Species.list <- read_csv("DNCodes.csv")
+
+view(Species.list)
+
+### Amy's Code ###
+## rename (original column name = 'Name you want')
+SpeciesKey <- Full_Species_List_Glossary_reference_only_ %>%
+select(1:7) %>%
+rename(SpeciesCode = 'Species Code (A-Z)',
+        NativeStatus = 'Native/Non-Native',
+        CommonName = 'Common Name',
+        SciName = 'Full Scientific Name (Genus species)')
+```
+
+```{r}
+### Amy's Code ###
+### Get rid of non data rows
+filter(Date ! = "Date" & Date ! = "mm/dd/yy")
+
+### Looking for NA
+
+Spring_data_raw_better$Date %>% unique()
+
+Spring_data_raw_better %>% filter(is.na(Date) == TRUE)
+
+Spring_data_raw_better %>% filter(is.na(Date) == FALSE)
+
+```
+
+```{r}
+### Amy's Code ###
+## Left Join, Right Join, Full Join and Combining Data Frames##
+
+intermediate <- Spring_data_raw_better %>%
+  filter(is.ca(Date) == FALSE) %>%
+  full_join(DNCodes, by = "Code") %>%
+  left_join(SpeciesKey, by = "SpeciesCode")
+
+```
+
+```{r}
+### Amy's Code ###
+## When combining multiple data sets how to make sure to inputs the correct values under different conditions 
+## If life form is na put in LifeForm. If there is something there then keep the old life form as a character
+## case_when (shows up as na(column of interest) == FALSE ~ substitue in that value to the more complete column , TRUE ~ if there is a value then keep the following entry as a character
+mutate(
+  life.form = case_when(
+    is.na(LifeForm) == FALSE ~ LifeForm,
+    TRUE ~ as.character(Lifeform)))
+  
+SciName = case_when(
+  Type == "Ground" ~ CommonName,
+  TRUE ~ as.character(SciName)
+)  
+
+
+```
+
+## How to delete column
+# select(-Column)
+
+## fill(Column) will copy from row directly above 
+
