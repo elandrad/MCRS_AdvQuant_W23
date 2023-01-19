@@ -1,0 +1,168 @@
+---
+title: "DroughtNetReformatting"
+author: "Phyl"
+date: "2023-01-12"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+install.packages("janitor")
+library(readxl)
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+#importing data
+#readxl package will help with importing data form XLS or xLSX
+
+#Spring_2020_raw <- read_excel ("Spring 2020 - Percent Cover - Raw Data DNET.xlsx", sheet =2)
+
+#View(Spring_2020_raw)
+
+```
+#need to know how to import various documents of data that are potentially in different formats
+```{r}
+Spring_2020_raw <-
+  read_excel("Spring 2020 - Percent Cover - Raw Data DNET.xlsx", sheet = "Sheet1", col_names = FALSE)
+
+Spring_2021_raw <-
+  read_excel("Spring 2021 - Percent Cover - Raw Data DNET.xlsx", sheet = "Sheet1", col_names = FALSE)
+
+Spring_2022_raw <-
+  read_excel("Spring 2022 - Percent Cover - Raw Data DNET.xlsx", sheet = "Sheet1", col_names = FALSE)
+
+Spring_data_raw <- bind_rows(Spring_2020_raw, Spring_2021_raw, Spring_2022_raw)
+
+Spring_data_raw_better <- Spring_data_raw %>%
+  row_to_names(row_number(1)) %>%
+  rename(Transect = `Transect #`, Hits = `# Hits`) %>% 
+  filter(Date != "Date" & Date != "mm/dd/yy")
+
+view(Spring_data_raw_better)
+
+#get rid of non-data rows
+```
+
+#tidying data
+```{r}
+Spring_data_raw_better %>%
+  mutate(Date=as.Date(as.numeric(as.character(Date)), origin = "1899-12-30"),
+         Block =as.factor(Block),
+         Plot = as.factor(Plot),
+         Treatment = as.factor(Treatment),
+         Transect = as.factor(Transect),
+         Region = as.factor(Region),
+         Hits = as.numeric(Hits),
+         Distance = as.numeric(Distance)) >%>
+  full_join(DNCodes, by = "Code") >%>
+  left_join()
+         
+         
+Spring_data_raw_better$Date >%> unique()
+#OR
+Spring_data_raw_better$Date >%> write.csv(file="DNCodes_raw")
+
+Spring_data_raw_better >%> filter(is.na(Date) == TRUE)
+
+Spring_data_raw_better >%> filter(is.na(Date)== FALSE)
+#date, block, plot, treatment, distance, region, transect,
+
+```
+
+#will now need to clean the data set incase there work typos input
+```{r}
+#use the join function to make sure species are categorized correctly
+#start by renaming the following.
+
+Full_Species_List_Glossary_reference_only>%> View()
+
+SpeciesKey <- Full_Species_List_Glossary_reference_only_ >%>
+  select(1:7) >%>
+  rename(Species Code = 'Species Code (A-Z)',
+         NativeStatus = ' Native/Non-Native',
+         CommonName = 'Common Name',
+         SciName = 'Full Scientific name (Genus species)')
+
+names(Full_Species_List_Glossary_reference_only_)
+#^ to help save time with typing
+```
+
+join function
+```{r}
+intermediate <- Spring_data_raw_better >%>
+  filter(is.na(Date) == FALSE) >%>
+  full_join(DNCodes, by = "Code" ) %>%
+  left_join(SpeciesKey, by = " SpeciesCode") >%>
+  Lifeform = case_when(n # this column came in from our specieskey and is more complete)
+                       is.na(LifeForm) == FALSE ~ LifeForm, #when the vsion from dncodes ha a value substitue int that value to the more complete map
+                       TRUE ~as character(Lieforms)),CommonName = case_when(
+                         SpeciesCOde == "L" == "itter"
+                         Species Code == "B" ~    "bare ground"
+                     Species Code =="W" == Coarse woody debris"
+                        Species Code == "F"
+                         Species Code == "R"
+                         Species Code == T == "thatch
+                        TRUE ~ as.character(CommonName)
+                        
+                      SciName = case_when (
+                        Type = "Gound" ~ Common names,
+                        TRUE ~ as.character(SciName))
+```
+
+```{r}
+
+```
+
+
+Finish this later: see picture on phone
+```{r}
+tidying:
+  Spring_data_raw_better<- Spring_data_raw >%>
+  row_to_names(row_number1)) >%> 
+  rename(Transect = 'Transect #', Hit = '# Hits') >%>
+  )
+
+```
+
+```{r}
+
+```
+
+```{r}
+# the function row_to_names()is from the janitor package
+Spring_2020_raw <- Spring_2020_raw %>% row_to_names(row_number(1))
+
+Spring_2020_raw
+
+#same as
+
+row_to_names(Spring_2020_raw, row_number = 1)
+
+```
+
+are those column names okay, or do they need to be changed to be tidy, contain identifying information? use rename() to give your columns better names.
+```{r}
+Spring_2020_raw <- Spring_2020_raw %>% rename(`Transect#`, `#Hits`)
+```
+
+Which rows dont contain observations?
+remove them from your dataset using [,] or filter()
+#as.Date(42705(colname), origin = ")
+```{r}
+Spring_2020_raw %>% filter("Date" & Date != "mm/dd/yy")
+```
+# equals is ==
+#Greater than is > or lesser than is <
+#equal to or greater is =>, and vice versa =<
+#doesnt equal is !=
+#and is &
+#or is |
+
+What is a factor? regarding anova's, it would be a category.
+```{r}
+
+```
+
